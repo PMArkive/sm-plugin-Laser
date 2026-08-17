@@ -17,11 +17,11 @@ This repository contains a SourceMod plugin called "Laser" that creates dynamic 
 ### Core Technologies
 - **Language**: SourcePawn (SourceMod scripting language)
 - **Platform**: SourceMod 1.11.0+ (Source engine games)
-- **Build System**: SourceKnight (modern SourceMod build tool)
+- **Build System**: Native GitHub Actions (rumblefrog/setup-sp)
 - **CI/CD**: GitHub Actions with automated building and releasing
 
 ### Dependencies
-- SourceMod 1.11.0-git6917 (automatically managed by SourceKnight)
+- SourceMod 1.12.x (installed in CI via rumblefrog/setup-sp)
 - MultiColors plugin for colored chat messages
 - Source engine game server (CS:GO/CS2)
 
@@ -32,23 +32,23 @@ This repository contains a SourceMod plugin called "Laser" that creates dynamic 
 │   └── Laser.sp                      # Main plugin file
 ├── materials/models/nide/laser/      # Texture files (.vmt, .vtf)
 ├── models/nide/laser/                # 3D model files (.mdl, .phy, .vvd, .vtx)
-├── sound/nide/                       # Sound effects (.wav)
-└── sourceknight.yaml                 # Build configuration
+└── sound/nide/                       # Sound effects (.wav)
 ```
 
-## Build System (SourceKnight)
+## Build System (GitHub Actions)
 
 ### Building the Plugin
 
 **Primary Build Method (CI/CD):**
-The repository uses SourceKnight via GitHub Actions for automated building. Local builds require the SourceKnight tool but installation may vary by environment.
+The repository uses native GitHub Actions for automated building: `rumblefrog/setup-sp` installs the SourcePawn compiler, and the MultiColors dependency is cloned directly for its include files.
 
 **GitHub Actions Build:**
 ```yaml
-- name: Build sourcemod plugin
-  uses: maxime1907/action-sourceknight@v1
+- name: Setup SourcePawn compiler
+  uses: rumblefrog/setup-sp@v1.3.1
   with:
-    cmd: build
+    version: "1.12.x"
+    github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 **Local Development:**
@@ -57,16 +57,16 @@ For local development, you'll need:
 2. MultiColors include files from: https://github.com/srcdslab/sm-plugin-MultiColors
 3. Manual compilation: `spcomp Laser.sp` (with proper include paths)
 
-### Configuration (sourceknight.yaml)
-- Automatically downloads SourceMod 1.11.0-git6917 compiler and includes
-- Manages MultiColors dependency via Git clone
-- Outputs compiled .smx files to `/addons/sourcemod/plugins`
+### Configuration (.github/workflows/ci.yml)
+- Installs SourceMod 1.12.x compiler (spcomp) via rumblefrog/setup-sp
+- Clones MultiColors dependency via Git and copies its include files
+- Outputs compiled .smx files to `addons/sourcemod/plugins`
 - Packages models, materials, and sounds for distribution
 - Target plugin: `Laser.sp` → `Laser.smx`
 
 ### GitHub Actions Workflow
 - Automatically builds on push/PR to main/master branches
-- Uses `maxime1907/action-sourceknight@v1` action for compilation
+- Uses `rumblefrog/setup-sp` action to install the SourcePawn compiler
 - Creates release packages with all assets (plugins + models + materials + sounds)
 - Supports both tagged releases and latest snapshots
 - Packages everything into tar.gz for easy deployment
